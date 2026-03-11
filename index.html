@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SARPRAS SMAN 1 LAWANG</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        
+        body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        .loader-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #1e40af;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-[#F8FAFC] text-slate-900">
+
+    <!-- Loading State -->
+    <div id="loading-screen" class="fixed inset-0 bg-white z-[100] flex flex-col items-center justify-center transition-opacity duration-500">
+        <div class="loader-spinner mb-4"></div>
+        <p class="font-bold text-blue-900 animate-pulse tracking-tight">Menghubungkan ke Sistem...</p>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="app" class="max-w-md mx-auto min-h-screen flex flex-col relative pb-20">
+        
+        <!-- Header -->
+        <header class="p-6 pt-8 flex justify-between items-center">
+            <div onclick="goTo('home')" class="cursor-pointer">
+                <h1 class="text-2xl font-800 text-blue-900 tracking-tighter">SARPRAS<span class="text-blue-500">S1L</span></h1>
+                <p class="text-[10px] font-bold text-slate-400 tracking-[0.2em] uppercase">SMAN 1 Lawang</p>
+            </div>
+            <button onclick="refreshData()" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-slate-400 hover:text-blue-600 active:scale-95 transition-all">
+                <i class="fas fa-sync-alt text-sm"></i>
+            </button>
+        </header>
+
+        <!-- Dynamic Content Area -->
+        <main class="px-6 flex-grow">
+            
+            <!-- VIEW: HOME -->
+            <section id="view-home" class="view-section space-y-4 animate-slide-up">
+                <div class="bg-blue-600 p-6 rounded-[2rem] text-white relative overflow-hidden mb-8">
+                    <div class="relative z-10">
+                        <h2 class="text-lg font-bold">Halo, Selamat Datang!</h2>
+                        <p class="text-blue-100 text-xs mt-1">Gunakan sistem ini untuk manajemen peminjaman barang inventaris sekolah.</p>
+                    </div>
+                    <i class="fas fa-school absolute -right-4 -bottom-4 text-8xl text-blue-500/30"></i>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4">
+                    <button onclick="startAction('pinjam')" class="glass-card p-6 rounded-3xl flex items-center space-x-5 shadow-sm hover:shadow-md transition-all active:scale-[0.98]">
+                        <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
+                            <i class="fas fa-shopping-cart text-xl"></i>
+                        </div>
+                        <div class="text-left">
+                            <h3 class="font-bold text-slate-800">Pinjam Barang</h3>
+                            <p class="text-xs text-slate-500">Pilih barang yang ingin dipinjam</p>
+                        </div>
+                    </button>
+
+                    <button onclick="startAction('kembali')" class="glass-card p-6 rounded-3xl flex items-center space-x-5 shadow-sm hover:shadow-md transition-all active:scale-[0.98]">
+                        <div class="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
+                            <i class="fas fa-reply text-xl"></i>
+                        </div>
+                        <div class="text-left">
+                            <h3 class="font-bold text-slate-800">Pengembalian</h3>
+                            <p class="text-xs text-slate-500">Selesaikan durasi pinjaman</p>
+                        </div>
+                    </button>
+                </div>
+            </section>
+
+            <!-- VIEW: AUTH NIS -->
+            <section id="view-auth" class="view-section hidden animate-slide-up">
+                <div class="glass-card rounded-[2.5rem] p-8 text-center shadow-xl">
+                    <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-fingerprint text-3xl"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-slate-800">Verifikasi NIS</h2>
+                    <p class="text-xs text-slate-400 mt-2 mb-8 uppercase tracking-widest font-bold">Gunakan Nomor Induk Siswa</p>
+                    
+                    <input type="number" id="nis-input" placeholder="Masukkan NIS" 
+                        class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-5 text-center text-2xl font-bold focus:border-blue-500 focus:bg-white outline-none transition-all mb-6">
+                    
+                    <button onclick="verifyNIS()" class="w-full btn-primary text-white font-bold py-5 rounded-2xl transition-all">VERIFIKASI</button>
+                    <button onclick="goTo('home')" class="mt-4 text-xs font-bold text-slate-400 uppercase tracking-tight">Batal</button>
+                </div>
+            </section>
+
+            <!-- VIEW: PINJAM (Pilih Barang) -->
+            <section id="view-pinjam" class="view-section hidden animate-slide-up">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase">Peminjam:</p>
+                        <h3 id="peminjam-name" class="font-bold text-blue-900">Nama Siswa</h3>
+                    </div>
+                    <div class="bg-blue-600 text-white px-4 py-1.5 rounded-full text-xs font-bold">
+                        <span id="cart-counter">0</span> Barang
+                    </div>
+                </div>
+
+                <div class="relative mb-4">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+                    <input type="text" id="search-barang" onkeyup="filterBarang()" placeholder="Cari nama atau kode barang..." 
+                        class="w-full pl-12 pr-4 py-4 bg-white rounded-2xl border border-slate-100 shadow-sm focus:border-blue-500 outline-none text-sm transition-all">
+                </div>
+
+                <div id="barang-list" class="grid grid-cols-1 gap-3 max-h-[50vh] overflow-y-auto pr-1">
+                    <!-- Barang cards inserted here -->
+                </div>
+
+                <button id="btn-next" onclick="goTo('waktu')" disabled 
+                    class="w-full mt-6 bg-slate-200 text-slate-400 font-bold py-5 rounded-2xl transition-all disabled:cursor-not-allowed">
+                    LANJUTKAN
+                </button>
+            </section>
+
+            <!-- VIEW: WAKTU -->
+            <section id="view-waktu" class="view-section hidden animate-slide-up">
+                <div class="glass-card rounded-[2.5rem] p-8 shadow-xl">
+                    <h2 class="text-center font-bold text-slate-800 mb-6">Durasi Penggunaan</h2>
+                    <div class="grid grid-cols-2 gap-4 mb-8">
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-slate-400 ml-2">DARI JAM KE</label>
+                            <select id="jam-mulai" class="w-full p-4 bg-slate-50 rounded-2xl border-none outline-none font-bold text-blue-900 focus:ring-2 focus:ring-blue-500">
+                                <option value="">Pilih</option>
+                                <script>for(let i=1;i<=10;i++) document.write(`<option value="${i}">${i}</option>`)</script>
+                            </select>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-slate-400 ml-2">SAMPAI JAM KE</label>
+                            <select id="jam-selesai" class="w-full p-4 bg-slate-50 rounded-2xl border-none outline-none font-bold text-blue-900 focus:ring-2 focus:ring-blue-500">
+                                <option value="">Pilih</option>
+                                <script>for(let i=1;i<=10;i++) document.write(`<option value="${i}">${i}</option>`)</script>
+                            </select>
+                        </div>
+                    </div>
+                    <button onclick="submitPinjam()" class="w-full btn-primary text-white font-bold py-5 rounded-2xl shadow-lg">PROSES PINJAM</button>
+                </div>
+            </section>
+
+            <!-- VIEW: KEMBALI -->
+            <section id="view-kembali" class="view-section hidden animate-slide-up">
+                <h2 class="text-center font-bold text-slate-800 mb-6">Barang Belum Kembali</h2>
+                <div id="pinjaman-aktif-list" class="space-y-3">
+                    <!-- Active loans here -->
+                </div>
+                <div id="no-loans" class="hidden text-center py-12">
+                    <div class="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-check text-xl"></i>
+                    </div>
+                    <p class="text-slate-400 text-sm font-medium">Semua barang sudah aman.</p>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Notification -->
+    <div id="toast" class="fixed bottom-6 left-6 right-6 p-4 bg-slate-900 text-white rounded-2xl text-center text-sm font-bold shadow-2xl transition-all duration-300 translate-y-24 opacity-0 z-[200]"></div>
+
+    <script>
+        // MASUKKAN URL ANDA DI SINI
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwnVygIiAorkFODnCPDKFoJtxp2bc2BXfh3xYuTvzW9Mxb-BoQqIkkOo9KWqyrSTxu-Pw/exec";
+
+        let db = { siswa: [], barang: [], riwayat: [] };
+        let cart = [];
+        let sessionSiswa = null;
+        let activeAction = null;
+
+        // Inisialisasi Aplikasi
+        window.onload = () => {
+            refreshData();
+        };
+
+        async function refreshData() {
+            showLoading(true);
+            try {
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'get_data' })
+                });
+                const data = await response.json();
+                db = data;
+                showLoading(false);
+                notify("Data Sinkron");
+            } catch (e) {
+                showLoading(false);
+                notify("Koneksi Gagal");
+            }
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading-screen').style.opacity = show ? "1" : "0";
+            document.getElementById('loading-screen').style.pointerEvents = show ? "all" : "none";
+        }
+
+        function notify(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.remove('translate-y-24', 'opacity-0');
+            setTimeout(() => t.classList.add('translate-y-24', 'opacity-0'), 3000);
+        }
+
+        function goTo(view) {
+            document.querySelectorAll('.view-section').forEach(v => v.classList.add('hidden'));
+            document.getElementById('view-' + view).classList.remove('hidden');
+        }
+
+        function startAction(type) {
+            activeAction = type;
+            document.getElementById('nis-input').value = "";
+            goTo('auth');
+        }
+
+        function verifyNIS() {
+            const nis = document.getElementById('nis-input').value;
+            const siswa = db.siswa.find(s => s.nis.toString() === nis);
+            
+            if (siswa) {
+                sessionSiswa = siswa;
+                if (activeAction === 'pinjam') {
+                    cart = [];
+                    document.getElementById('peminjam-name').innerText = siswa.nama;
+                    renderBarang();
+                    updateCartUI();
+                    goTo('pinjam');
+                } else {
+                    renderRiwayatAktif();
+                    goTo('kembali');
+                }
+            } else {
+                notify("NIS Tidak Ditemukan");
+            }
+        }
+
+        function renderBarang() {
+            const search = document.getElementById('search-barang').value.toLowerCase();
+            const list = document.getElementById('barang-list');
+            list.innerHTML = "";
+
+            db.barang.filter(b => b.nama.toLowerCase().includes(search) || b.kode.toString().includes(search)).forEach(b => {
+                const isTaken = db.riwayat.some(r => r.kodeBarang.toString() === b.kode.toString() && r.status === 'Dipinjam');
+                const inCart = cart.some(c => c.kode === b.kode);
+
+                const card = document.createElement('div');
+                card.className = `glass-card p-4 rounded-2xl flex justify-between items-center transition-all ${isTaken ? 'opacity-40 grayscale' : (inCart ? 'border-blue-500 bg-blue-50' : '')}`;
+                card.innerHTML = `
+                    <div>
+                        <h4 class="font-bold text-sm text-slate-800">${b.nama}</h4>
+                        <p class="text-[10px] font-bold text-blue-500 uppercase tracking-wider">${b.kode}</p>
+                    </div>
+                    ${isTaken ? '<span class="text-[8px] font-black bg-red-100 text-red-600 px-2 py-1 rounded-md">DIPINJAM</span>' : `
+                        <button onclick="toggleCart('${b.kode}')" class="w-10 h-10 rounded-xl flex items-center justify-center transition-all ${inCart ? 'bg-red-500 text-white' : 'bg-slate-100 text-slate-400'}">
+                            <i class="fas ${inCart ? 'fa-minus' : 'fa-plus'}"></i>
+                        </button>
+                    `}
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function toggleCart(kode) {
+            const idx = cart.findIndex(c => c.kode === kode);
+            if (idx > -1) cart.splice(idx, 1);
+            else cart.push(db.barang.find(b => b.kode === kode));
+            renderBarang();
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            document.getElementById('cart-counter').innerText = cart.length;
+            const btn = document.getElementById('btn-next');
+            if (cart.length > 0) {
+                btn.disabled = false;
+                btn.className = "w-full mt-6 btn-primary text-white font-bold py-5 rounded-2xl shadow-lg";
+            } else {
+                btn.disabled = true;
+                btn.className = "w-full mt-6 bg-slate-200 text-slate-400 font-bold py-5 rounded-2xl cursor-not-allowed";
+            }
+        }
+
+        function filterBarang() { renderBarang(); }
+
+        async function submitPinjam() {
+            const m = document.getElementById('jam-mulai').value;
+            const s = document.getElementById('jam-selesai').value;
+            if (!m || !s) return notify("Pilih Jam Pelajaran");
+
+            const payload = cart.map(b => ({
+                id: Date.now() + Math.random().toString(36).substr(2, 5),
+                nis: sessionSiswa.nis,
+                namaSiswa: sessionSiswa.nama,
+                kodeBarang: b.kode,
+                namaBarang: b.nama,
+                jam: `Jam ${m}-${s}`,
+                tanggal: new Date().toLocaleDateString('id-ID')
+            }));
+
+            showLoading(true);
+            try {
+                const res = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'pinjam', items: payload })
+                });
+                await refreshData();
+                notify("Peminjaman Berhasil");
+                goTo('home');
+            } catch (e) {
+                notify("Gagal Mencatat");
+            }
+            showLoading(false);
+        }
+
+        function renderRiwayatAktif() {
+            const list = document.getElementById('pinjaman-aktif-list');
+            const filtered = db.riwayat.filter(r => r.nis.toString() === sessionSiswa.nis.toString() && r.status === 'Dipinjam');
+            
+            list.innerHTML = "";
+            document.getElementById('no-loans').classList.toggle('hidden', filtered.length > 0);
+
+            filtered.forEach(r => {
+                const card = document.createElement('div');
+                card.className = "glass-card p-5 rounded-3xl flex justify-between items-center shadow-sm";
+                card.innerHTML = `
+                    <div>
+                        <h4 class="font-bold text-slate-800">${r.namaBarang}</h4>
+                        <p class="text-[10px] text-blue-500 font-bold">${r.jam} • ${r.tanggal}</p>
+                    </div>
+                    <button onclick="prosesKembali('${r.id}')" class="bg-emerald-600 text-white text-[10px] font-black px-4 py-2 rounded-xl shadow-md active:scale-95 transition-all">KEMBALI</button>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        async function prosesKembali(id) {
+            showLoading(true);
+            try {
+                await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'kembali', id: id })
+                });
+                await refreshData();
+                renderRiwayatAktif();
+                notify("Berhasil Kembali");
+            } catch (e) {
+                notify("Gagal Update");
+            }
+            showLoading(false);
+        }
+    </script>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SARPRAS SMAN 1 LAWANG</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        
+        body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        .loader-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #1e40af;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-[#F8FAFC] text-slate-900">
+
+    <!-- Loading State -->
+    <div id="loading-screen" class="fixed inset-0 bg-white z-[100] flex flex-col items-center justify-center transition-opacity duration-500">
+        <div class="loader-spinner mb-4"></div>
+        <p class="font-bold text-blue-900 animate-pulse tracking-tight">Menghubungkan ke Sistem...</p>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="app" class="max-w-md mx-auto min-h-screen flex flex-col relative pb-20">
+        
+        <!-- Header -->
+        <header class="p-6 pt-8 flex justify-between items-center">
+            <div onclick="goTo('home')" class="cursor-pointer">
+                <h1 class="text-2xl font-800 text-blue-900 tracking-tighter">SARPRAS<span class="text-blue-500">S1L</span></h1>
+                <p class="text-[10px] font-bold text-slate-400 tracking-[0.2em] uppercase">SMAN 1 Lawang</p>
+            </div>
+            <button onclick="refreshData()" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-slate-400 hover:text-blue-600 active:scale-95 transition-all">
+                <i class="fas fa-sync-alt text-sm"></i>
+            </button>
+        </header>
+
+        <!-- Dynamic Content Area -->
+        <main class="px-6 flex-grow">
+            
+            <!-- VIEW: HOME -->
+            <section id="view-home" class="view-section space-y-4 animate-slide-up">
+                <div class="bg-blue-600 p-6 rounded-[2rem] text-white relative overflow-hidden mb-8">
+                    <div class="relative z-10">
+                        <h2 class="text-lg font-bold">Halo, Selamat Datang!</h2>
+                        <p class="text-blue-100 text-xs mt-1">Gunakan sistem ini untuk manajemen peminjaman barang inventaris sekolah.</p>
+                    </div>
+                    <i class="fas fa-school absolute -right-4 -bottom-4 text-8xl text-blue-500/30"></i>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4">
+                    <button onclick="startAction('pinjam')" class="glass-card p-6 rounded-3xl flex items-center space-x-5 shadow-sm hover:shadow-md transition-all active:scale-[0.98]">
+                        <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
+                            <i class="fas fa-shopping-cart text-xl"></i>
+                        </div>
+                        <div class="text-left">
+                            <h3 class="font-bold text-slate-800">Pinjam Barang</h3>
+                            <p class="text-xs text-slate-500">Pilih barang yang ingin dipinjam</p>
+                        </div>
+                    </button>
+
+                    <button onclick="startAction('kembali')" class="glass-card p-6 rounded-3xl flex items-center space-x-5 shadow-sm hover:shadow-md transition-all active:scale-[0.98]">
+                        <div class="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
+                            <i class="fas fa-reply text-xl"></i>
+                        </div>
+                        <div class="text-left">
+                            <h3 class="font-bold text-slate-800">Pengembalian</h3>
+                            <p class="text-xs text-slate-500">Selesaikan durasi pinjaman</p>
+                        </div>
+                    </button>
+                </div>
+            </section>
+
+            <!-- VIEW: AUTH NIS -->
+            <section id="view-auth" class="view-section hidden animate-slide-up">
+                <div class="glass-card rounded-[2.5rem] p-8 text-center shadow-xl">
+                    <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-fingerprint text-3xl"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-slate-800">Verifikasi NIS</h2>
+                    <p class="text-xs text-slate-400 mt-2 mb-8 uppercase tracking-widest font-bold">Gunakan Nomor Induk Siswa</p>
+                    
+                    <input type="number" id="nis-input" placeholder="Masukkan NIS" 
+                        class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-5 text-center text-2xl font-bold focus:border-blue-500 focus:bg-white outline-none transition-all mb-6">
+                    
+                    <button onclick="verifyNIS()" class="w-full btn-primary text-white font-bold py-5 rounded-2xl transition-all">VERIFIKASI</button>
+                    <button onclick="goTo('home')" class="mt-4 text-xs font-bold text-slate-400 uppercase tracking-tight">Batal</button>
+                </div>
+            </section>
+
+            <!-- VIEW: PINJAM (Pilih Barang) -->
+            <section id="view-pinjam" class="view-section hidden animate-slide-up">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase">Peminjam:</p>
+                        <h3 id="peminjam-name" class="font-bold text-blue-900">Nama Siswa</h3>
+                    </div>
+                    <div class="bg-blue-600 text-white px-4 py-1.5 rounded-full text-xs font-bold">
+                        <span id="cart-counter">0</span> Barang
+                    </div>
+                </div>
+
+                <div class="relative mb-4">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+                    <input type="text" id="search-barang" onkeyup="filterBarang()" placeholder="Cari nama atau kode barang..." 
+                        class="w-full pl-12 pr-4 py-4 bg-white rounded-2xl border border-slate-100 shadow-sm focus:border-blue-500 outline-none text-sm transition-all">
+                </div>
+
+                <div id="barang-list" class="grid grid-cols-1 gap-3 max-h-[50vh] overflow-y-auto pr-1">
+                    <!-- Barang cards inserted here -->
+                </div>
+
+                <button id="btn-next" onclick="goTo('waktu')" disabled 
+                    class="w-full mt-6 bg-slate-200 text-slate-400 font-bold py-5 rounded-2xl transition-all disabled:cursor-not-allowed">
+                    LANJUTKAN
+                </button>
+            </section>
+
+            <!-- VIEW: WAKTU -->
+            <section id="view-waktu" class="view-section hidden animate-slide-up">
+                <div class="glass-card rounded-[2.5rem] p-8 shadow-xl">
+                    <h2 class="text-center font-bold text-slate-800 mb-6">Durasi Penggunaan</h2>
+                    <div class="grid grid-cols-2 gap-4 mb-8">
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-slate-400 ml-2">DARI JAM KE</label>
+                            <select id="jam-mulai" class="w-full p-4 bg-slate-50 rounded-2xl border-none outline-none font-bold text-blue-900 focus:ring-2 focus:ring-blue-500">
+                                <option value="">Pilih</option>
+                                <script>for(let i=1;i<=10;i++) document.write(`<option value="${i}">${i}</option>`)</script>
+                            </select>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-slate-400 ml-2">SAMPAI JAM KE</label>
+                            <select id="jam-selesai" class="w-full p-4 bg-slate-50 rounded-2xl border-none outline-none font-bold text-blue-900 focus:ring-2 focus:ring-blue-500">
+                                <option value="">Pilih</option>
+                                <script>for(let i=1;i<=10;i++) document.write(`<option value="${i}">${i}</option>`)</script>
+                            </select>
+                        </div>
+                    </div>
+                    <button onclick="submitPinjam()" class="w-full btn-primary text-white font-bold py-5 rounded-2xl shadow-lg">PROSES PINJAM</button>
+                </div>
+            </section>
+
+            <!-- VIEW: KEMBALI -->
+            <section id="view-kembali" class="view-section hidden animate-slide-up">
+                <h2 class="text-center font-bold text-slate-800 mb-6">Barang Belum Kembali</h2>
+                <div id="pinjaman-aktif-list" class="space-y-3">
+                    <!-- Active loans here -->
+                </div>
+                <div id="no-loans" class="hidden text-center py-12">
+                    <div class="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-check text-xl"></i>
+                    </div>
+                    <p class="text-slate-400 text-sm font-medium">Semua barang sudah aman.</p>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Notification -->
+    <div id="toast" class="fixed bottom-6 left-6 right-6 p-4 bg-slate-900 text-white rounded-2xl text-center text-sm font-bold shadow-2xl transition-all duration-300 translate-y-24 opacity-0 z-[200]"></div>
+
+    <script>
+        // MASUKKAN URL ANDA DI SINI
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwnVygIiAorkFODnCPDKFoJtxp2bc2BXfh3xYuTvzW9Mxb-BoQqIkkOo9KWqyrSTxu-Pw/exec";
+
+        let db = { siswa: [], barang: [], riwayat: [] };
+        let cart = [];
+        let sessionSiswa = null;
+        let activeAction = null;
+
+        // Inisialisasi Aplikasi
+        window.onload = () => {
+            refreshData();
+        };
+
+        async function refreshData() {
+            showLoading(true);
+            try {
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'get_data' })
+                });
+                const data = await response.json();
+                db = data;
+                showLoading(false);
+                notify("Data Sinkron");
+            } catch (e) {
+                showLoading(false);
+                notify("Koneksi Gagal");
+            }
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading-screen').style.opacity = show ? "1" : "0";
+            document.getElementById('loading-screen').style.pointerEvents = show ? "all" : "none";
+        }
+
+        function notify(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.remove('translate-y-24', 'opacity-0');
+            setTimeout(() => t.classList.add('translate-y-24', 'opacity-0'), 3000);
+        }
+
+        function goTo(view) {
+            document.querySelectorAll('.view-section').forEach(v => v.classList.add('hidden'));
+            document.getElementById('view-' + view).classList.remove('hidden');
+        }
+
+        function startAction(type) {
+            activeAction = type;
+            document.getElementById('nis-input').value = "";
+            goTo('auth');
+        }
+
+        function verifyNIS() {
+            const nis = document.getElementById('nis-input').value;
+            const siswa = db.siswa.find(s => s.nis.toString() === nis);
+            
+            if (siswa) {
+                sessionSiswa = siswa;
+                if (activeAction === 'pinjam') {
+                    cart = [];
+                    document.getElementById('peminjam-name').innerText = siswa.nama;
+                    renderBarang();
+                    updateCartUI();
+                    goTo('pinjam');
+                } else {
+                    renderRiwayatAktif();
+                    goTo('kembali');
+                }
+            } else {
+                notify("NIS Tidak Ditemukan");
+            }
+        }
+
+        function renderBarang() {
+            const search = document.getElementById('search-barang').value.toLowerCase();
+            const list = document.getElementById('barang-list');
+            list.innerHTML = "";
+
+            db.barang.filter(b => b.nama.toLowerCase().includes(search) || b.kode.toString().includes(search)).forEach(b => {
+                const isTaken = db.riwayat.some(r => r.kodeBarang.toString() === b.kode.toString() && r.status === 'Dipinjam');
+                const inCart = cart.some(c => c.kode === b.kode);
+
+                const card = document.createElement('div');
+                card.className = `glass-card p-4 rounded-2xl flex justify-between items-center transition-all ${isTaken ? 'opacity-40 grayscale' : (inCart ? 'border-blue-500 bg-blue-50' : '')}`;
+                card.innerHTML = `
+                    <div>
+                        <h4 class="font-bold text-sm text-slate-800">${b.nama}</h4>
+                        <p class="text-[10px] font-bold text-blue-500 uppercase tracking-wider">${b.kode}</p>
+                    </div>
+                    ${isTaken ? '<span class="text-[8px] font-black bg-red-100 text-red-600 px-2 py-1 rounded-md">DIPINJAM</span>' : `
+                        <button onclick="toggleCart('${b.kode}')" class="w-10 h-10 rounded-xl flex items-center justify-center transition-all ${inCart ? 'bg-red-500 text-white' : 'bg-slate-100 text-slate-400'}">
+                            <i class="fas ${inCart ? 'fa-minus' : 'fa-plus'}"></i>
+                        </button>
+                    `}
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function toggleCart(kode) {
+            const idx = cart.findIndex(c => c.kode === kode);
+            if (idx > -1) cart.splice(idx, 1);
+            else cart.push(db.barang.find(b => b.kode === kode));
+            renderBarang();
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            document.getElementById('cart-counter').innerText = cart.length;
+            const btn = document.getElementById('btn-next');
+            if (cart.length > 0) {
+                btn.disabled = false;
+                btn.className = "w-full mt-6 btn-primary text-white font-bold py-5 rounded-2xl shadow-lg";
+            } else {
+                btn.disabled = true;
+                btn.className = "w-full mt-6 bg-slate-200 text-slate-400 font-bold py-5 rounded-2xl cursor-not-allowed";
+            }
+        }
+
+        function filterBarang() { renderBarang(); }
+
+        async function submitPinjam() {
+            const m = document.getElementById('jam-mulai').value;
+            const s = document.getElementById('jam-selesai').value;
+            if (!m || !s) return notify("Pilih Jam Pelajaran");
+
+            const payload = cart.map(b => ({
+                id: Date.now() + Math.random().toString(36).substr(2, 5),
+                nis: sessionSiswa.nis,
+                namaSiswa: sessionSiswa.nama,
+                kodeBarang: b.kode,
+                namaBarang: b.nama,
+                jam: `Jam ${m}-${s}`,
+                tanggal: new Date().toLocaleDateString('id-ID')
+            }));
+
+            showLoading(true);
+            try {
+                const res = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'pinjam', items: payload })
+                });
+                await refreshData();
+                notify("Peminjaman Berhasil");
+                goTo('home');
+            } catch (e) {
+                notify("Gagal Mencatat");
+            }
+            showLoading(false);
+        }
+
+        function renderRiwayatAktif() {
+            const list = document.getElementById('pinjaman-aktif-list');
+            const filtered = db.riwayat.filter(r => r.nis.toString() === sessionSiswa.nis.toString() && r.status === 'Dipinjam');
+            
+            list.innerHTML = "";
+            document.getElementById('no-loans').classList.toggle('hidden', filtered.length > 0);
+
+            filtered.forEach(r => {
+                const card = document.createElement('div');
+                card.className = "glass-card p-5 rounded-3xl flex justify-between items-center shadow-sm";
+                card.innerHTML = `
+                    <div>
+                        <h4 class="font-bold text-slate-800">${r.namaBarang}</h4>
+                        <p class="text-[10px] text-blue-500 font-bold">${r.jam} • ${r.tanggal}</p>
+                    </div>
+                    <button onclick="prosesKembali('${r.id}')" class="bg-emerald-600 text-white text-[10px] font-black px-4 py-2 rounded-xl shadow-md active:scale-95 transition-all">KEMBALI</button>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        async function prosesKembali(id) {
+            showLoading(true);
+            try {
+                await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'kembali', id: id })
+                });
+                await refreshData();
+                renderRiwayatAktif();
+                notify("Berhasil Kembali");
+            } catch (e) {
+                notify("Gagal Update");
+            }
+            showLoading(false);
+        }
+    </script>
+</body>
+</html>
+
+
