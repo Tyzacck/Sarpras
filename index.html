@@ -3,110 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SARPRAS SMAN 1 LAWANG</title>
+    <title>SARPRAS S1L - High Speed</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
-        
-        body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
-        
-        .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-
-        .loader-spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #1e40af;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .progress-bar { transition: width 0.3s ease; }
     </style>
 </head>
-<body class="bg-[#F8FAFC] text-slate-900">
+<body class="bg-slate-50 text-slate-900">
 
-    <!-- Loading State -->
-    <div id="loading-screen" class="fixed inset-0 bg-white z-[100] flex flex-col items-center justify-center transition-opacity duration-500">
-        <div class="loader-spinner mb-4"></div>
-        <p class="font-bold text-blue-900 animate-pulse tracking-tight">Menghubungkan ke Sistem...</p>
+    <div id="loading-overlay" class="fixed inset-0 bg-white/90 z-[100] hidden flex flex-col items-center justify-center p-6 text-center">
+        <div class="w-16 h-16 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mb-6"></div>
+        <h2 id="loading-status" class="text-lg font-bold text-blue-900">Menghubungkan...</h2>
+        <p class="text-sm text-slate-400 mt-2">Server Google butuh waktu 5-10 detik untuk bangun.</p>
+        <div class="w-full max-w-xs bg-slate-100 h-2 rounded-full mt-6 overflow-hidden">
+            <div id="sync-progress" class="progress-bar bg-blue-600 h-full w-0"></div>
+        </div>
     </div>
 
-    <!-- Main App Container -->
-    <div id="app" class="max-w-md mx-auto min-h-screen flex flex-col relative pb-20">
-        
-        <!-- Header -->
-        <header class="p-6 pt-8 flex justify-between items-center">
-            <div onclick="goTo('home')" class="cursor-pointer">
+    <div class="max-w-md mx-auto min-h-screen p-6">
+        <header class="flex justify-between items-center mb-10">
+            <div>
                 <h1 class="text-2xl font-800 text-blue-900 tracking-tighter">SARPRAS<span class="text-blue-500">S1L</span></h1>
-                <p class="text-[10px] font-bold text-slate-400 tracking-[0.2em] uppercase">SMAN 1 Lawang</p>
+                <p class="text-[10px] font-bold text-slate-400 tracking-widest uppercase">Vercel Cloud Mode</p>
             </div>
-            <button onclick="refreshData()" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-slate-400 hover:text-blue-600 active:scale-95 transition-all">
-                <i class="fas fa-sync-alt text-sm"></i>
+            <button onclick="syncData()" class="w-12 h-12 bg-white shadow-md rounded-2xl flex items-center justify-center text-blue-600 active:scale-90 transition-all">
+                <i class="fas fa-sync-alt"></i>
             </button>
         </header>
 
-        <!-- Dynamic Content Area -->
-        <main class="px-6 flex-grow">
-            
-            <!-- VIEW: HOME -->
-            <section id="view-home" class="view-section space-y-4 animate-slide-up">
-                <div class="bg-blue-600 p-6 rounded-[2rem] text-white relative overflow-hidden mb-8">
-                    <div class="relative z-10">
-                        <h2 class="text-lg font-bold">Halo, Selamat Datang!</h2>
-                        <p class="text-blue-100 text-xs mt-1">Gunakan sistem ini untuk manajemen peminjaman barang inventaris sekolah.</p>
-                    </div>
-                    <i class="fas fa-school absolute -right-4 -bottom-4 text-8xl text-blue-500/30"></i>
+        <div id="main-menu" class="space-y-4">
+            <!-- Statistik Singkat -->
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100">
+                    <p class="text-[9px] font-bold text-slate-400 uppercase">Siswa Terdaftar</p>
+                    <p id="stat-siswa" class="text-xl font-800 text-blue-600">0</p>
                 </div>
-
-                <div class="grid grid-cols-1 gap-4">
-                    <button onclick="startAction('pinjam')" class="glass-card p-6 rounded-3xl flex items-center space-x-5 shadow-sm hover:shadow-md transition-all active:scale-[0.98]">
-                        <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
-                            <i class="fas fa-shopping-cart text-xl"></i>
-                        </div>
-                        <div class="text-left">
-                            <h3 class="font-bold text-slate-800">Pinjam Barang</h3>
-                            <p class="text-xs text-slate-500">Pilih barang yang ingin dipinjam</p>
-                        </div>
-                    </button>
-
-                    <button onclick="startAction('kembali')" class="glass-card p-6 rounded-3xl flex items-center space-x-5 shadow-sm hover:shadow-md transition-all active:scale-[0.98]">
-                        <div class="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
-                            <i class="fas fa-reply text-xl"></i>
-                        </div>
-                        <div class="text-left">
-                            <h3 class="font-bold text-slate-800">Pengembalian</h3>
-                            <p class="text-xs text-slate-500">Selesaikan durasi pinjaman</p>
-                        </div>
-                    </button>
+                <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100">
+                    <p class="text-[9px] font-bold text-slate-400 uppercase">Total Barang</p>
+                    <p id="stat-barang" class="text-xl font-800 text-emerald-600">0</p>
                 </div>
-            </section>
+            </div>
 
-            <!-- VIEW: AUTH NIS -->
-            <section id="view-auth" class="view-section hidden animate-slide-up">
-                <div class="glass-card rounded-[2.5rem] p-8 text-center shadow-xl">
-                    <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                        <i class="fas fa-fingerprint text-3xl"></i>
+            <button onclick="alert('Fitur Pinjam Siap')" class="w-full bg-blue-600 text-white p-6 rounded-[2rem] shadow-xl shadow-blue-100 flex items-center justify-between group">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 bg-blue-500 rounded-2xl flex items-center justify-center"><i class="fas fa-plus text-lg"></i></div>
+                    <div class="text-left">
+                        <p class="font-bold">Pinjam Barang</p>
+                        <p class="text-[10px] text-blue-200">Mulai transaksi baru</p>
                     </div>
-                    <h2 class="text-xl font-bold text-slate-800">Verifikasi NIS</h2>
-                    <p class="text-xs text-slate-400 mt-2 mb-8 uppercase tracking-widest font-bold">Gunakan Nomor Induk Siswa</p>
+                </div>
+                <i class="fas fa-chevron-right text-blue-400 group-hover:translate-x-1 transition-transform"></i>
+            </button>
+        </div>
+
+        <div id="log-info" class="mt-10 p-4 bg-slate-100 rounded-2xl">
+            <h3 class="text-[10px] font-bold text-slate-400 uppercase mb-2">Log Aktivitas Terakhir</h3>
+            <div id="log-content" class="text-[10px] font-mono text-slate-500 space-y-1">
+                <div>- Aplikasi siap.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // MASUKKAN URL ANDA
+        const API_URL = "https://script.google.com/macros/s/AKfycbwnVygIiAorkFODnCPDKFoJtxp2bc2BXfh3xYuTvzW9Mxb-BoQqIkkOo9KWqyrSTxu-Pw/exec";
+
+        function setProgress(pct, status) {
+            document.getElementById('sync-progress').style.width = pct + '%';
+            if(status) document.getElementById('loading-status').innerText = status;
+        }
+
+        function addLog(msg) {
+            const content = document.getElementById('log-content');
+            const d = new Date();
+            const time = d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
+            content.innerHTML = `<div>[${time}] ${msg}</div>` + content.innerHTML;
+        }
+
+        async function syncData() {
+            const overlay = document.getElementById('loading-overlay');
+            overlay.classList.remove('hidden');
+            setProgress(10, "Membangunkan Server...");
+
+            try {
+                // Strategi: Gunakan GET untuk fetch data agar lebih cepat menembus CORS
+                // Caranya: Tambahkan parameter ?action=get_data di URL
+                const fetchUrl = `${API_URL}?action=get_data`;
+                
+                setProgress(30, "Mengunduh Data...");
+                const response = await fetch(fetchUrl);
+                
+                setProgress(70, "Memproses JSON...");
+                const data = await response.json();
+
+                if (data) {
+                    localStorage.setItem('db_siswa', JSON.stringify(data.siswa));
+                    localStorage.setItem('db_barang', JSON.stringify(data.barang));
+                    
+                    document.getElementById('stat-siswa').innerText = data.siswa.length;
+                    document.getElementById('stat-barang').innerText = data.barang.length;
+                    
+                    addLog(`Berhasil sinkron ${data.siswa.length} siswa.`);
+                    setProgress(100, "Selesai!");
+                    setTimeout(() => overlay.classList.add('hidden'), 500);
+                }
+            } catch (err) {
+                console.error(err);
+                addLog("Gagal Sinkron: " + err.message);
+                setProgress(100, "Gagal!");
+                setTimeout(() => overlay.classList.add('hidden'), 1000);
+                alert("Sinkronisasi gagal. Pastikan 'Anyone' sudah diatur pada Deployment Google Script Anda.");
+            }
+        }
+
+        // Jalankan saat pertama buka
+        window.onload = () => {
+            const cacheSiswa = localStorage.getItem('db_siswa');
+            const cacheBarang = localStorage.getItem('db_barang');
+            if(cacheSiswa && cacheBarang) {
+                document.getElementById('stat-siswa').innerText = JSON.parse(cacheSiswa).length;
+                document.getElementById('stat-barang').innerText = JSON.parse(cacheBarang).length;
+                addLog("Menggunakan data cache lokal.");
+            } else {
+                syncData();
+            }
+        };
+    </script>
+</body>
+</html>
+
                     
                     <input type="number" id="nis-input" placeholder="Masukkan NIS" 
                         class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-5 text-center text-2xl font-bold focus:border-blue-500 focus:bg-white outline-none transition-all mb-6">
